@@ -3,7 +3,6 @@ package main
 import (
 	"coffee-bot/internal/app"
 	"coffee-bot/internal/config"
-	"coffee-bot/internal/httpserver"
 	"fmt"
 )
 
@@ -19,10 +18,7 @@ func main() {
 	// _ = vkClient.SendMessage(123456789, "Бот запущен")
 
 	// select {}
-
-	router := httpserver.NewRouter()
-	server := httpserver.New(router)
-	application := app.New(cfg.DB, server)
+	application := app.New(cfg.DB)
 	application.Run()
 
 }

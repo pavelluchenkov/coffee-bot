@@ -2,9 +2,10 @@ package app
 
 import (
 	"coffee-bot/internal/db"
+	"coffee-bot/internal/handler"
 	"coffee-bot/internal/httpserver"
 	"coffee-bot/internal/repository"
-	"coffee-bot/internal/services"
+	"coffee-bot/internal/service"
 	"context"
 	"log"
 	"os"
@@ -14,16 +15,25 @@ import (
 
 type App struct {
 	server      *httpserver.Server
-	menuService *services.MenuService
+	menuService      *service.MenuService
+	userStateService *service.UserStateService
 }
 
-func New(connString string, server *httpserver.Server) *App {
+func New(connString string) *App {
 	pool := db.New(connString)
 	repo := repository.New(pool)
-	menuService := services.NewMenuService(repo)
+	menuService := service.NewMenuService(repo)
+	userStateService := service.NewUserStateService(repo)
+	menuHandler := handler.NewMenuHandler(menuService)
+	
+
+	router := httpserver.NewRouter(menuHandler)
+	server := httpserver.New(router)
+
 	return &App{
 		server:      server,
 		menuService: menuService,
+		userStateService: userStateService,
 	}
 }
 
@@ -35,7 +45,7 @@ func (a *App) Run() {
 	go func() {
 		a.server.Run()
 	}()
-	
+
 	<-stop
 
 	log.Println("📴 shutdown signal received")

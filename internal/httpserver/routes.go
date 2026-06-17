@@ -1,23 +1,19 @@
 package httpserver
 
 import (
-	"encoding/json"
+	"coffee-bot/internal/handler"
 	"net/http"
 )
 
-func NewRouter() http.Handler{
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
-
-	return mux
+type Router struct {
+	menuHandler *handler.MenuHandler
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request){
-	w.Header().Set("Content-Type", "application/json")
+func NewRouter(menuHandler *handler.MenuHandler) http.Handler {
+	mux := http.NewServeMux()
+	
+	mux.HandleFunc("/menu/categories", menuHandler.GetCategories)
+	mux.HandleFunc("/menu/", menuHandler.GetByCategory)
 
-	resp := map[string]string{
-		"status": "ok",
-	}
-
-	json.NewEncoder(w).Encode(resp)
+	return mux
 }

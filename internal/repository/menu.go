@@ -78,5 +78,5 @@ func (r *Repository) GetCategories(ctx context.Context)([]string, error){
 	if err := rows.Err(); err != nil{
 		return nil, err
 	}
-	return result, err 
+	return result, nil
 }
