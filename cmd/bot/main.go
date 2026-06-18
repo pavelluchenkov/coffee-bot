@@ -19,6 +19,7 @@ func main() {
 
 	// select {}
 	application := app.New(cfg.DB)
+	application.Test()
 	application.Run()
 
 }

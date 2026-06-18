@@ -14,9 +14,11 @@ import (
 )
 
 type App struct {
-	server      *httpserver.Server
+	server           *httpserver.Server
 	menuService      *service.MenuService
 	userStateService *service.UserStateService
+	messageService   *service.MessageService
+	orderService     *service.OrderService
 }
 
 func New(connString string) *App {
@@ -24,16 +26,19 @@ func New(connString string) *App {
 	repo := repository.New(pool)
 	menuService := service.NewMenuService(repo)
 	userStateService := service.NewUserStateService(repo)
+	orderService := service.NewOrderService(repo)
 	menuHandler := handler.NewMenuHandler(menuService)
-	
+	messageService := service.NewMessageService(menuService, userStateService, orderService)
 
 	router := httpserver.NewRouter(menuHandler)
 	server := httpserver.New(router)
 
 	return &App{
-		server:      server,
-		menuService: menuService,
+		server:           server,
+		menuService:      menuService,
 		userStateService: userStateService,
+		messageService:   messageService,
+		orderService:     orderService,
 	}
 }
 
@@ -51,4 +56,29 @@ func (a *App) Run() {
 	log.Println("📴 shutdown signal received")
 
 	a.server.Shutdown(context.Background())
+}
+
+func (a *App) Test() {
+	ctx := context.Background()
+
+	userID := int64(123)
+
+	tests := []string{
+		"menu:start",
+		"category:classic",
+		"drink:Латте",
+		"size:M",
+	}
+
+	for _, t := range tests {
+		resp, err := a.messageService.ProcessMessage(ctx, userID, t)
+		if err != nil {
+			log.Println("ERR:", err)
+			continue
+		}
+
+		log.Println("INPUT:", t)
+		log.Println("OUTPUT:", resp)
+		log.Println("-------------------")
+	}
 }
